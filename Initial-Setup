@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Raspberry Pi Initial Setup and Plex Media Server - Install Guide</title>
+</head>
+<body>
+<div class="main-title">
+  <h1 id="raspberry-pi-initial-setup-and-plex-media-server-install-guide">Raspberry Pi Initial Setup and Plex Media Server - Install Guide</h1>
+</div>
+<!--<div class="navigation-bar">
+  <ul class="navigation">
+    <li><a href="#preparing-mirco-sd-card">Preparing Mirco SD Card</a></li>
+    <li><a href="#raspberry-pi-initial-setup">Raspberry Pi Initial Setup</a></li>
+    <li><a href="#formatting-external-hard-drive">Formatting External Hard Drive</a></li>
+    <li><a href="#mounting-external-hard-drive">Mounting External Hard Drive</a></li>
+    <li><a href="#set-up-samba-share-with-external-hard-drive">Set Up Samba Share with External Hard Drive</a></li>
+    <li><a href="#plex-media-server-installation-and-setup">Plex Media Server Installation and Setup</a></li>
+    <li><a href ="#backing-up-plex-media-server">Backing Up Plex Media Server</a><li> 
+  </ul>
+</div>-->
+<div class="main-text">
+  <h3 id="disclaimer">Disclaimer</h3>
+    <ul>
+      <li>When you see [IP] - type your IP address <strong>without</strong> brackets</li>
+      <li>After there is an instruction to type a command, press <code>Enter</code> to execute</li>
+      <li>If you are encountering SSH connection issues and need to reset - type <code>rm -f ~/.ssh/known_hosts</code></li>
+    </ul>
+
+  <h2 id="preparing-mirco-sd-card">Preparing Mirco SD Card</h2>
+  <hr />
+  <h3 id="flashing-os-to-micro-sd-card">Flashing OS to Micro SD Card</h3>
+    <ol>
+      <li>Install <a href="https://downloads.raspberrypi.org/imager/imager_1.5.dmg">Raspberry Pi Imager.app</a></li>
+      <li>Open Raspberry Pi Imager.app</li>
+      <li>Click on <code>CHOOSE OS</code> and select preferred operating system (Recommended: Raspberry Pi OS (other) - Raspberry Pi OS Lite (32-bit)</li>
+      <li>Click on <code>CHOOSE SD CARD</code> and select mirco SD card from devices list</li>
+      <li>Click <code>Write</code></li>
+      <li>Click <code>Yes</code> when prompted <code>All existing data on [SD CARD] will be erased. Are you sure you want to continue?</code></li>
+      <li>Enter in administrator password to allow Raspberry Pi Imager.app to make changes</li>
+    </ol>
+  <h3 id="enable-ssh-directly-on-micro-sd-card">Enable SSH Directly On Micro SD Card</h3>
+    <ol>
+      <li>Reinsert micro SD card into computer</li>
+      <li>Open Terminal.app</li>
+      <li>Type <code>cd /Volumes/boot</code> to enter the micro SD boot directory</li>
+      <li>Type <code>touch ssh</code> to create a blank ssh file</li>
+      <li>Close Terminal.app and eject micro SD card from computer</li>
+    </ol>
+
+  <h2 id="raspberry-pi-initial-setup">Raspberry Pi Initial Setup</h2>
+  <hr />
+  <h3 id="hooking-up-raspberry-pi">Hooking Up Raspberry Pi</h3>
+    <ol>
+      <li>Insert micro SD card</li>
+      <li>Connect Raspberry Pi to modem or router via ethernet cable</li>
+      <li>Plug in power cable</li>
+    </ol>
+  <h3 id="locating-ip-address-of-raspberry-pi">Locating IP Address of Raspberry Pi</h3>
+    <ol>
+      <li>Open Terminal.app</li>
+      <li>Type <code>ping raspberrypi.local</code></li>
+      <li>You should see an output <code>PING raspberrypi.local [IP]: xx data bytes</code></li>
+      <li>There will be a continuous ping until you type <code>^C</code> to end the process</li>
+    </ol>
+  <h3 id="connecting-to-raspberry-pi-via-ssh">Connecting to Raspberry Pi via SSH</h3>
+    <ol>
+      <li>Open Terminal.app</li>
+      <li>Type <code>ssh pi@[INSERT IP]</code></li>
+      <li>If you see a warning that <code>authenticity of host cant be established...are you sure you want to continue connecting?</code> - type <code>yes</code> (this is because the SSH client has never encountered the server's key fingerprint before)</li>
+      <li>Default password is <code>raspberry</code> (no text will appear but continue typing - this is a security measure)</li>
+    </ol>
+  <h3 id="changing-default-password-highly-recommended-">Changing Default Password (HIGHLY RECOMMENDED)</h3>
+    <ol>
+      <li>Type <code>passwd</code></li>
+      <li>Type in <code>raspberry</code> for current password</li>
+      <li>Type your new password</li>
+    </ol>
+  <h3 id="updating-raspberry-pi">Updating Raspberry Pi</h3>
+    <ol>
+      <li>Type <code>sudo apt-get update</code> to update all currently installed packages</li>
+      <li>Type <code>sudo apt-get upgrade</code> to upgrade packages</li>
+      <li>Type <code>sudo reboot</code> to reboot (not necessary but recommended)</li>
+    </ol>
+
+  <h2 id="formatting-external-hard-drive">Formatting External Hard Drive</h2>
+  <hr />
+  <h3 id="format-external-hard-drive-to-ext4-via-raspberry">Format External Hard Drive to ext4 via Raspberry Pi</h3>
+    <ol>
+      <li>Type <code>lsblk -f</code> to list block devices with filesystem information</li>
+        <li>Type <code>sudo mkfs.ext4 [INSERT LOCATION]</code> (location will be listed on far left side - i.e. sda2 = /dev/sda2)</li>
+        <li>Type <code>cd</code> after completion to get back to home directory</li>
+    </ol>
+
+  <h2 id="mounting-external-hard-drive">Mounting External Hard Drive</h2>
+  <hr />
+  <h3 id="creating-mount-directory">Creating Mount Directory</h3>
+    <ol>
+      <li>Make sure you are in the <code>/home/pi/mnt</code> directory (if not then type <code>cd /mnt</code> and then <code>pwd</code> to double check)</li>
+      <li>Type <code>sudo mkdir USB</code> to create a mount directory for the hard drive</li>
+      <li>Type <code>cd</code> to get back to home directory</li>
+    </ol>
+  <h3 id="#mounting-external-hard-drive">Mounting External Hard Drive</h3>
+    <ol>
+      <li>Plug in hard drive</li>
+      <li>Type <code>blkid</code> to list all block devices with Universally Unique Identifier (UUID), the TYPE of the filesystem, and the LABEL</li>
+      <li>Take note of location of desired hard drive (location will be listed on far left side - i.e. sda2 = /dev/sda2)</li>
+      <li>Type <code>sudo mount [LOCATION] /mnt/USB</code> (example: <code>sudo mount dev/sda2 /mnt/USB</code>)</li>
+      <li>Check to make sure hard drive is mounted by typing <code>df -h</code> and look for <code>/mnt/USB</code> in the <code>Mounted on</code> section</li>
+    </ol>
+
+  <h2 id="set-up-samba-share-with-external-hard-drive">Set Up Samba Share with External Hard Drive</h2>
+  <hr />
+    <p>A Samba file server enables file sharing across different operating systems over a network</p>
+  <h3 id="samba-installation">Samba Installation</h3>
+    <ol>
+      <li>Type <code>sudo apt-get install samba samba-common-bin</code></li>
+      <li>When prompted <code>Modify smb.conf to use WINS settings from DHCP?</code> - choose <code>Yes</code></li>
+    </ol>
+  <h3 id="enabling-external-hard-drive-mount-upon-reboot">Enabling External Hard Drive Mount Upon Reboot</h3>
+    <ol>
+      <li>Find Universally Unique Identifier (UUID) of hard drive by typing <code>blkid</code></li>
+      <li>Type <code>sudo nano -Bw /etc/fstab</code></li>
+      <li>Below last PARTUUID entry, type <code>UUID=[INSERT UUID] /mnt/USB auto defaults,user,nofail 0 2</code></li>
+      <li>Press <code>^X</code> to exit, <code>Y</code> to save changes, and <code>Enter</code> to confirm</li>
+      <li>Type <code>sudo reboot</code> to make sure that hard drive will mount upon startup</li>
+    </ol>
+  <h3 id="samba-share-configuration">Samba Share Configuration</h3>
+    <ol>
+      <li>Type <code>sudo nano /etc/samba/smb.conf</code></li>
+      <li>At the bottom of the file type
+        <br>
+        <code>[INSERT DESIRED NAME OF HARD DRIVE]
+          <br>comment = DESIRED NAME OF HARD DRIVE
+          <br>public = no
+          <br>writeable = yes
+          <br>browsable = yes
+          <br>path = /mnt/USB
+          <br>create mask = 0777
+          <br>directory mask = 0777
+          <br>only guest = no</code></li>
+      <li>Press <code>^X</code> to exit, <code>Y</code> to save changes, and <code>Enter</code> to confirm</li>
+      <li>To require a login for server connection type <code>sudo smbpasswd -a pi</code></li>
+      <li> Type <code>sudo chown pi /mnt/USB</code> to ensure that pi user has read/write access</li>
+      <li>Type <code>sudo reboot</code></li>
+    </ol>
+  <h3 id="connect-to-server-with-login">Connect to Server With Login</h3>
+    <ol>
+      <li>Have Finder.app active and press <code>Command + K</code></li>
+      <li>Type <code>smb://[INSERT IP]</code></li>
+      <li>Click <code>Connect</code></li>
+      <li>Type in <code>pi</code> as username and your previously chosen password</li>
+      <li>Click on hard drive label to mount the server</li>
+    </ol>
+  <h2 id="plex-media-server-installation-and-setup">Plex Media Server Installation and Setup</h2>
+  <hr />
+  <h3 id="adding-plex-package-repository">Adding Plex Package Repository</h3>
+    <ol>
+      <li>Update packages via <code>sudo apt-get update</code> and then <code>sudo apt-get upgrade</code></li>
+      <li>Type <code>sudo apt-get install apt-transport-https</code></li>
+      <li>Type <code>curl https://downloads.plex.tv/plex-keys/PlexSign.key | sudo apt-key add -</code></li>
+      <li>Type <code>echo deb https://downloads.plex.tv/repo/deb public main | sudo tee /etc/apt/sources.list.d/plexmediaserver.list</code></li>
+      <li>Type <code>sudo apt-get update</code></li>
+    </ol>
+  <h3 id="installing-plexmediaserver-package">Installing PlexMediaServer Package</h3>
+    <ol>
+      <li>Type <code>sudo apt install plexmediaserver</code></li>
+      <li>When <code>plexmediaserver.list (Y/I/N/O/D/Z) [default=N] ?</code> appears, type <code>N</code></li>
+    </ol>
+  <h3 id="set-static-ip-address-for-plex-server">Set Static IP Address for Plex Server</h3>
+    <ol>
+      <li>If IP address is forgotten, type <code>hostname -I</code> to find</li>
+      <li>Type <code>sudo nano /boot/cmdline.txt</code></li>
+      <li>Below <code>console=serial...</code> type <code>ip=[INSERT IP]</code></li>
+      <li>Press <code>^X</code> to exit, <code>Y</code> to save changes, and <code>Enter</code> to confirm</li>
+      <li>Restart using <code>sudo reboot</code></li>
+    </ol>
+  <h3 id="setting-up-plex-server-via-web-browser">Setting up Plex Server via Web Browser</h3>
+    <ol>
+      <li>In web browser address bar type <code>[YOUR IP]:32400/web</code></li>
+      <li>Give server a name</li>
+      <li>Select 'Add Library' in left-hand side column</li>
+      <li>Select desired type of media</li>
+      <li>When browsing for media click on <code>USB</code> and select the parent folder that contains the desired media</li>
+    </ol>
+    <h2>Plex Media Server Backup</h2>
+    <hr />
+  <h3 -d="backing-up-plex-media-server">Backing Up Plex Media Server</h3>
+    <p>This will be done when the server <strong>is not</strong> running (primary database maybe be damaged if done when server is active)</p>
+    <ol>
+      <li>Type <code>systemctl stop plexmediaserver</code> to stop Plex Media Server</li>
+      <li>Enter in password for user <code>pi</code></li>
+      <li>Type <code>cd var/lib/plexmediaserver</code> to change into the main Plex Server directory</li>
+      <li>Type <code>sudo tar -czvf PMS-Backup.tar.gz ./Library</code> to start the backup archive process (might take around 10 minutes)</li>
+      <li>To re-enable Plex Media Server type <code>systemctl start plexmediaserver</code></li>
+    </ol>
+  <h3>Moving Backup File to Local Machine</h3>
+    <ol>
+      <li>While still in <code>var/lib/plexmediaserver</code>, type <code>sudo mv PMS-Backup.tar.gz /home/pi</code> to move backup file to main directory</li>
+      <li>Type <code>cd</code> to move to main directory, then <code>mkdir PMS-Backups</code> to create a folder for the backup file</li>
+      <li>Type <code>mv PMS-Backup.tar.gz PMS-Backups</code> to move the backup file into the created directory</li>
+      <li>Open Terminal.app</li>
+      <li>Type <code>sudo rsync -ah --progress -e ssh pi@[INSERT IP]:/home/pi/PMS-Backups /Users/...</code> (/Users/... will be the destination path on local machine)</li>
+    </ol>
+  <h3>Restore Backup File</h3>
+    <p>This should be done if you are creating a new Plex library with the same files or moving to a different machine</p>
+    <ol>
+      <li>Open Terminal.app</li>
+      <li>Type <code>rsync --progress -avz /Users/... pi@[INSERT IP]:/home/pi/var/lib/plexmediaserver</code> (/Users/... will be the source path of PMS-Backup.tar.gz on local machine)</li>
+      <li>Type <code>cd var/lib/plexmediaserver</code> to change into the main Plex Server directory</li>
+      <li>Type <code>tar -xzvf PMS-Backup.tar.gz</code> to uncompress /Library</li>
+    </ol>
+  </div>
+</body>
+</html>
